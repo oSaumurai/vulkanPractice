@@ -71,7 +71,7 @@ void EngineDevice::createInstance() {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
-
+    //Info Setpip
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "LittleVulkanEngine App";
@@ -101,6 +101,7 @@ void EngineDevice::createInstance() {
         createInfo.pNext = nullptr;
     }
 
+    //Create
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
