@@ -3,12 +3,11 @@
 #include <array>
 Kirara_App::Kirara_App()
 {
-	window.print_vk_statics();
+	//window.print_vk_statics();
+	loadModel();
 	createPipelineLayout();
 	createPipeline();
 	createCommandBuffer();
-	
-	
 }
 
 Kirara_App::~Kirara_App()
@@ -23,6 +22,16 @@ void Kirara_App::run()
 		drawFrame();
 	}
 
+}
+
+void Kirara_App::loadModel()
+{
+	std::vector<Model::Vertex> vertices{
+		{{0.0f, -0.5f}},
+		{{0.5f, 0.5f}},
+		{{-0.5f, 0.5f}}
+	};
+	m_model = std::make_unique<Model>(m_device, vertices);
 }
 
 //private
@@ -91,8 +100,11 @@ void Kirara_App::createCommandBuffer()
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		
 		m_pipeLine->bind(commandBuffers[i]);
+		m_model   ->bind(commandBuffers[i]);
+		m_model   ->draw(commandBuffers[i]);
 
-		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+		//move to model
+		//vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffers[i]);
 		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {

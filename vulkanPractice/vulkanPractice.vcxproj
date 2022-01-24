@@ -42,8 +42,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -162,6 +162,7 @@
     <ClCompile Include="EngineDevice.cpp" />
     <ClCompile Include="Kirara_App.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\model\Model.cpp" />
     <ClCompile Include="src\Pipeline\Pipeline.cpp" />
     <ClCompile Include="src\window\Window.cpp" />
     <ClCompile Include="src\SwapChain\SwapChain.cpp" />
@@ -169,6 +170,7 @@
   <ItemGroup>
     <ClInclude Include="EngineDevice.h" />
     <ClInclude Include="Kirara_App.h" />
+    <ClInclude Include="src\model\Model.h" />
     <ClInclude Include="src\Pipeline\Pipeline.h" />
     <ClInclude Include="src\window\Window.h" />
     <ClInclude Include="src\SwapChain\SwapChain.h" />

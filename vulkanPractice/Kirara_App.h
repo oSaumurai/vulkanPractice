@@ -1,7 +1,6 @@
 #pragma once
 #include "Pipeline/Pipeline.h"
 #include "SwapChain/SwapChain.h"
-
 //std
 #include <memory>
 #include <vector>
@@ -17,6 +16,7 @@ public:
 	//void update();
 	//void draw();
 private:
+	void loadModel();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffer();
@@ -29,5 +29,6 @@ private:
 
 	std::unique_ptr<Pipeline> m_pipeLine;
 	std::vector<VkCommandBuffer> commandBuffers;
+	std::unique_ptr<Model> m_model;
 };
 

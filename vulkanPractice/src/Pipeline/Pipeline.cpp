@@ -143,12 +143,14 @@ void Pipeline::createGraphcisPipeline(const std::string& vertFilePath,
 	shaderStages[1].pNext = nullptr;
 	shaderStages[1].pSpecializationInfo = nullptr;
 
+	auto bindingDescription   = Model::Vertex::getBindingDescription();
+	auto attributeDescription = Model::Vertex::getAttributeDescription();
 	VkPipelineVertexInputStateCreateInfo vertextInputInfo{};
 	vertextInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertextInputInfo.vertexAttributeDescriptionCount = 0;
-	vertextInputInfo.vertexBindingDescriptionCount = 0;
-	vertextInputInfo.pVertexAttributeDescriptions = nullptr;
-	vertextInputInfo.pVertexBindingDescriptions = nullptr;
+	vertextInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescription.size());
+	vertextInputInfo.vertexBindingDescriptionCount   = static_cast<uint32_t>(bindingDescription.size());
+	vertextInputInfo.pVertexAttributeDescriptions    = attributeDescription.data();
+	vertextInputInfo.pVertexBindingDescriptions      = bindingDescription.data();
 	
 	VkPipelineViewportStateCreateInfo viewportInfo{};
 	viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include "../EngineDevice.h"
+#include "model/Model.h"
+
 struct PipelineConfigInfo {
 	PipelineConfigInfo(const PipelineConfigInfo&) = delete;
 	PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
