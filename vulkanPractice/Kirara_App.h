@@ -21,14 +21,18 @@ private:
 	void createPipeline();
 	void createCommandBuffer();
 	void drawFrame();
+	void recreateSwapChain();
 
-	Window window{WIDTH, HEIGHT, "Kirara"};
+	void recordCommandBuffer(uint32_t);
+	void freeCommandBuffer();
+
+	Window window{1280, 720, "Kirara"};
 	EngineDevice m_device{ window };
-	SwapChain swapChain{ m_device, window.getExtent() };
+	std::unique_ptr<SwapChain> swapChain;
 	VkPipelineLayout pipelineLayout;
 
 	std::unique_ptr<Pipeline> m_pipeLine;
 	std::vector<VkCommandBuffer> commandBuffers;
-	std::unique_ptr<Model> m_model;
+	std::unique_ptr<Model> m_model; 
 };
 

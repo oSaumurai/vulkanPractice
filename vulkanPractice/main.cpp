@@ -11,7 +11,5 @@ int main() {
     
     Kirara_App* app = new Kirara_App();
     app->run();
-
-
     return 0;
 }

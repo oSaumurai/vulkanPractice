@@ -1,9 +1,8 @@
 #include "Window.h"
 
-Window::Window(const int witdh, const int height, const std::string& _title)
-	: window_height(height), window_width(witdh), title(_title)
+Window::Window(const int w, const int h, const std::string& _title)
+	: title(_title), width(w), height(h)
 {
-	initGLfw();
 	initWindow();
 }
 
@@ -17,12 +16,11 @@ void Window::initWindow()
 {
 	initGLfw();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	_window = glfwCreateWindow(window_height, window_width, title.c_str(), NULL, NULL);
-
-	extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+	_window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+	glfwSetWindowUserPointer(_window, this);
+	glfwSetFramebufferSizeCallback(_window, frameBufferResizeCallback);
 }
 
 void Window::initGLfw()
@@ -34,9 +32,12 @@ void Window::initGLfw()
 	}
 }
 
-void Window::print_vk_statics()
+void Window::frameBufferResizeCallback(GLFWwindow* window, int width, int height)
 {
-	std::cout << extensionCount;
+	auto m_window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+	m_window->frameBufferResizaed = true;
+	m_window->width = width;
+	m_window->height = height;
 }
 
 void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
@@ -48,7 +49,7 @@ void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
 
 VkExtent2D Window::getExtent()
 {
-	return VkExtent2D({ static_cast<uint32_t>(window_width), static_cast<uint32_t>(window_height) });
+	return VkExtent2D({ static_cast<uint32_t>(width), static_cast<uint32_t>(height) });
 }
 
 bool Window::shouldClose()
