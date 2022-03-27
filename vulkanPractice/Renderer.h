@@ -1,23 +1,22 @@
 #pragma once
 #include "Pipeline/Pipeline.h"
 #include "SwapChain/SwapChain.h"
-#include "GameObject.h"
 //std
 #include <memory>
 #include <vector>
-class Kirara_App
+class Renderer
 {
 public:
-	Kirara_App();
-	~Kirara_App();
-	Kirara_App(const Kirara_App &) = delete;
-	Kirara_App& operator&=(const Kirara_App &) = delete;
+	Renderer();
+	~Renderer();
+	Renderer(const Renderer &) = delete;
+	Renderer& operator&=(const Renderer &) = delete;
 
 	void run();
 	//void update();
 	//void draw();
 private:
-	void loadGameObjects();
+	void loadModel();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffer();
@@ -26,7 +25,6 @@ private:
 
 	void recordCommandBuffer(uint32_t);
 	void freeCommandBuffer();
-	void renderGameObject(VkCommandBuffer);
 
 	Window window{1280, 720, "Kirara"};
 	EngineDevice m_device{ window };
@@ -35,6 +33,6 @@ private:
 
 	std::unique_ptr<Pipeline> m_pipeLine;
 	std::vector<VkCommandBuffer> commandBuffers;
-	std::vector<GameObject> m_gameObjects; 
+	std::unique_ptr<Model> m_model; 
 };
 

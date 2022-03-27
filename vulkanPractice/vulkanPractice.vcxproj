@@ -160,8 +160,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EngineDevice.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Kirara_App.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="src\model\Model.cpp" />
     <ClCompile Include="src\Pipeline\Pipeline.cpp" />
     <ClCompile Include="src\window\Window.cpp" />
@@ -169,7 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineDevice.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Kirara_App.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="src\model\Model.h" />
     <ClInclude Include="src\Pipeline\Pipeline.h" />
     <ClInclude Include="src\window\Window.h" />

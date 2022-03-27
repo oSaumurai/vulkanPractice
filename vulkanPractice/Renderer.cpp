@@ -1,28 +1,25 @@
-#include "Kirara_App.h"
-#include <glm/gtc/constants.hpp>
+#include "Renderer.h"
 #include <iostream>
 #include <array>
 struct SimplePushConstantData {
-	glm::mat2 tranform{1.0f};
 	glm::vec2 offset;
 	alignas(16) glm::vec3 color;
 };
 
-Kirara_App::Kirara_App()
+Renderer::Renderer()
 {
-	//window.print_vk_statics();
-	loadGameObjects();
+	loadModel();
 	createPipelineLayout();
 	recreateSwapChain();
 	createCommandBuffer();
 }
 
-Kirara_App::~Kirara_App()
+Renderer::~Renderer()
 {
 	vkDestroyPipelineLayout(m_device.device(), pipelineLayout, nullptr);
 }
 
-void Kirara_App::run()
+void Renderer::run()
 {
 	while (!window.shouldClose()) {
 		glfwPollEvents();
@@ -31,26 +28,18 @@ void Kirara_App::run()
 	vkDeviceWaitIdle(m_device.device());
 }
 
-void Kirara_App::loadGameObjects()
+void Renderer::loadModel()
 {
 	std::vector<Model::Vertex> vertices{
 		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 		{{0.5f, 0.5f} , {0.0f, 1.0f, 0.0f}},
 		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 	};
-	auto m_model = std::make_shared<Model>(m_device, vertices);
-	auto triangle = GameObject::createGameObj();
-	triangle.model = m_model;
-	triangle.color = { .1f,.8f,.1f };
-	triangle.transform2d.translation.x = 0.0f;
-	triangle.transform2d.scale = { 1.0f, 1.0f };
-	//triangle.transform2d.rotation = .25f * glm::two_pi<float>();
-	m_gameObjects.push_back(std::move(triangle));
-
+	m_model = std::make_unique<Model>(m_device, vertices);
 }
 
 //private
-void Kirara_App::createPipelineLayout()
+void Renderer::createPipelineLayout()
 {
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -70,7 +59,7 @@ void Kirara_App::createPipelineLayout()
 	}
 }
 
-void Kirara_App::createPipeline()
+void Renderer::createPipeline()
 {
 	assert(swapChain != nullptr && "Cannot create pipeline before swapchain");
 	assert(pipelineLayout != nullptr && "Cannot create pipeline before pipelineLayout");
@@ -82,37 +71,17 @@ void Kirara_App::createPipeline()
 	m_pipeLine = std::make_unique<Pipeline>(m_device, "src/shader/test.vert.spv", "src/shader/test.frag.spv", pipeConfigInfo);
 }
 
-void Kirara_App::freeCommandBuffer()
+void Renderer::freeCommandBuffer()
 {
 	vkFreeCommandBuffers(m_device.device(), m_device.getCommandPool(), static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 	commandBuffers.clear();
 }
 
-void Kirara_App::renderGameObject(VkCommandBuffer commandBuffer)
+void Renderer::recordCommandBuffer(uint32_t imageIndex)
 {
-	m_pipeLine->bind(commandBuffer);
-	for (auto& obj : m_gameObjects) {
-		obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
-		SimplePushConstantData push{};
-		push.offset = obj.transform2d.translation;
-		push.color = obj.color;
-		push.tranform = obj.transform2d.mat2();
+	static int frame = 0;
+	frame = (frame + 1) % 2000;
 
-		vkCmdPushConstants(
-			commandBuffer,
-			pipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(SimplePushConstantData),
-			&push
-		);
-		obj.model->bind(commandBuffer);
-		obj.model->draw(commandBuffer);
-	}
-}
-
-void Kirara_App::recordCommandBuffer(uint32_t imageIndex)
-{
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -139,15 +108,29 @@ void Kirara_App::recordCommandBuffer(uint32_t imageIndex)
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width =  static_cast<float>(swapChain->getSwapChainExtent().width);
+	viewport.width = static_cast<float>(swapChain->getSwapChainExtent().width);
 	viewport.height = static_cast<float>(swapChain->getSwapChainExtent().height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	VkRect2D scissor{ {0,0}, swapChain->getSwapChainExtent() };
 	vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
-	vkCmdSetScissor(commandBuffers[imageIndex],  0, 1, &scissor);
+	vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
-	renderGameObject(commandBuffers[imageIndex]);
+
+	m_pipeLine->bind(commandBuffers[imageIndex]);
+	m_model->bind(commandBuffers[imageIndex]);
+
+	for (int j = 0; j < 4; j++) {
+		SimplePushConstantData push{};
+		push.offset = { -0.5f + frame * 0.001f, -0.4f + j * .25f };
+		push.color = { 0.0f,0.0f,0.2f + 0.2f * j };
+
+		vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
+		m_model->draw(commandBuffers[imageIndex]);
+	}
+
+	//move to model
+	//vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffers[imageIndex]);
 	if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
@@ -156,7 +139,7 @@ void Kirara_App::recordCommandBuffer(uint32_t imageIndex)
 }
 
 
-void Kirara_App::createCommandBuffer()
+void Renderer::createCommandBuffer()
 {
 	commandBuffers.resize(swapChain->imageCount());
 
@@ -171,7 +154,7 @@ void Kirara_App::createCommandBuffer()
 	}
 }
 
-void Kirara_App::drawFrame()
+void Renderer::drawFrame()
 {
 	uint32_t imageIndex;
 	auto result = swapChain->acquireNextImage(&imageIndex);
@@ -195,7 +178,7 @@ void Kirara_App::drawFrame()
 	}
 }
 
-void Kirara_App::recreateSwapChain()
+void Renderer::recreateSwapChain()
 {
 	auto extent = window.getExtent();
 	while (extent.width == 0 || extent.height == 0) {
