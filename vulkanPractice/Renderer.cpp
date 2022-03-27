@@ -1,74 +1,24 @@
 #include "Renderer.h"
+
+#include <glm/gtc/constants.hpp>
 #include <iostream>
 #include <array>
 struct SimplePushConstantData {
+	glm::mat2 tranform{ 1.0f };
 	glm::vec2 offset;
 	alignas(16) glm::vec3 color;
 };
 
-Renderer::Renderer()
+Renderer::Renderer(Window& window, EngineDevice& m_device)
+	: window(window), m_device(m_device)
 {
-	loadModel();
-	createPipelineLayout();
 	recreateSwapChain();
 	createCommandBuffer();
 }
 
 Renderer::~Renderer()
 {
-	vkDestroyPipelineLayout(m_device.device(), pipelineLayout, nullptr);
-}
-
-void Renderer::run()
-{
-	while (!window.shouldClose()) {
-		glfwPollEvents();
-		drawFrame();
-	}
-	vkDeviceWaitIdle(m_device.device());
-}
-
-void Renderer::loadModel()
-{
-	std::vector<Model::Vertex> vertices{
-		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{0.5f, 0.5f} , {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-	};
-	m_model = std::make_unique<Model>(m_device, vertices);
-}
-
-//private
-void Renderer::createPipelineLayout()
-{
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(SimplePushConstantData);
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	std::cout << "kirara app: pipelineLayout" << std::endl;
-	if (vkCreatePipelineLayout(m_device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("App: failed to create pipelineLayout");
-	}
-}
-
-void Renderer::createPipeline()
-{
-	assert(swapChain != nullptr && "Cannot create pipeline before swapchain");
-	assert(pipelineLayout != nullptr && "Cannot create pipeline before pipelineLayout");
-
-	PipelineConfigInfo pipeConfigInfo{};
-	Pipeline::defaultPipelineConfigInfo(pipeConfigInfo);
-	pipeConfigInfo.renderPass = swapChain->getRenderPass();
-	pipeConfigInfo.pipelineLayout = pipelineLayout;
-	m_pipeLine = std::make_unique<Pipeline>(m_device, "src/shader/test.vert.spv", "src/shader/test.frag.spv", pipeConfigInfo);
+	freeCommandBuffer();
 }
 
 void Renderer::freeCommandBuffer()
@@ -77,71 +27,9 @@ void Renderer::freeCommandBuffer()
 	commandBuffers.clear();
 }
 
-void Renderer::recordCommandBuffer(uint32_t imageIndex)
-{
-	static int frame = 0;
-	frame = (frame + 1) % 2000;
-
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-	if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS) {
-		throw std::runtime_error("App: failed to begin commandBuffers ");
-	}
-
-	VkRenderPassBeginInfo renderPassInfo{};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = swapChain->getRenderPass();
-	renderPassInfo.framebuffer = swapChain->getFrameBuffer(imageIndex);
-
-	renderPassInfo.renderArea.offset = { 0,0 };
-	renderPassInfo.renderArea.extent = swapChain->getSwapChainExtent();
-
-	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = { 0.1f,0.1f,0.1f,1.0f };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-	renderPassInfo.pClearValues = clearValues.data();
-
-	vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(swapChain->getSwapChainExtent().width);
-	viewport.height = static_cast<float>(swapChain->getSwapChainExtent().height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	VkRect2D scissor{ {0,0}, swapChain->getSwapChainExtent() };
-	vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
-	vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
-
-
-	m_pipeLine->bind(commandBuffers[imageIndex]);
-	m_model->bind(commandBuffers[imageIndex]);
-
-	for (int j = 0; j < 4; j++) {
-		SimplePushConstantData push{};
-		push.offset = { -0.5f + frame * 0.001f, -0.4f + j * .25f };
-		push.color = { 0.0f,0.0f,0.2f + 0.2f * j };
-
-		vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
-		m_model->draw(commandBuffers[imageIndex]);
-	}
-
-	//move to model
-	//vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
-
-	vkCmdEndRenderPass(commandBuffers[imageIndex]);
-	if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS) {
-		throw std::runtime_error("App: failed to record commandBuffers");
-	}
-}
-
-
 void Renderer::createCommandBuffer()
 {
-	commandBuffers.resize(swapChain->imageCount());
+	commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -154,29 +42,6 @@ void Renderer::createCommandBuffer()
 	}
 }
 
-void Renderer::drawFrame()
-{
-	uint32_t imageIndex;
-	auto result = swapChain->acquireNextImage(&imageIndex);
-	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-		recreateSwapChain();
-		return;
-	}
-	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		throw std::runtime_error("App: failed to aquire swapchain image");
-	}
-
-	recordCommandBuffer(imageIndex);
-	result = swapChain->submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.wasWindowResizeFlag()) {
-		window.resetWindowResizeFlag();
-		recreateSwapChain();
-		return;
-	}
-	if (result != VK_SUCCESS) {
-		throw std::runtime_error("App: failed to present swapchain image");
-	}
-}
 
 void Renderer::recreateSwapChain()
 {
@@ -190,12 +55,103 @@ void Renderer::recreateSwapChain()
 		swapChain = std::make_unique<SwapChain>(m_device, extent);
 	}
 	else {
-		swapChain = std::make_unique<SwapChain>(m_device, extent, std::move(swapChain));
-		if (swapChain->imageCount() != commandBuffers.size()) {
-			freeCommandBuffer();
-			createCommandBuffer();
+		std::shared_ptr<SwapChain> oldSwapChain = std::move(swapChain);
+		swapChain = std::make_unique<SwapChain>(m_device, extent, oldSwapChain);
+		
+		if ( !oldSwapChain->compareSwapFormats(*swapChain.get()) ) {
+			throw std::runtime_error("SwapChain image(or depth) format has been changed!");
 		}
+		//if (swapChain->imageCount() != commandBuffers.size()) {
+		//	freeCommandBuffer();
+		//	createCommandBuffer();
+		//}
 	}
-	vkDeviceWaitIdle(m_device.device());
-	createPipeline();
 }
+
+VkCommandBuffer Renderer::beginFrame()
+{
+	assert(!isFrameStarted && "Can't call beginFrame while already in progress");
+	auto result = swapChain->acquireNextImage(&currentImageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		recreateSwapChain();
+		return nullptr;
+	}
+	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("App: failed to aquire swapchain image");
+	}
+
+	isFrameStarted = true;
+	auto commandBuffer = getCurrentCommandBuffer();
+
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("App: failed to begin commandBuffers ");
+	}
+
+	return commandBuffer;
+}
+
+void Renderer::endFrame()
+{
+	assert(isFrameStarted && "Can't call endFrame while frame is not in progress");
+	auto commandBuffer = getCurrentCommandBuffer();
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("App: failed to record commandBuffers");
+	}
+
+	auto result = swapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.wasWindowResizeFlag()) {
+		window.resetWindowResizeFlag();
+		recreateSwapChain();
+	}
+	else if (result != VK_SUCCESS) {
+		throw std::runtime_error("App: failed to present swapchain image");
+	}
+	isFrameStarted = false;
+	currentFrameIndex = (currentFrameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+}
+
+void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
+{
+	assert(isFrameStarted && "Can't call beginSwapChain if frame is not in progress");
+	assert(commandBuffer == getCurrentCommandBuffer() && "Can't begin render pass on command buffer from a different frame");
+
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = swapChain->getRenderPass();
+	renderPassInfo.framebuffer = swapChain->getFrameBuffer(currentImageIndex);
+
+	renderPassInfo.renderArea.offset = { 0,0 };
+	renderPassInfo.renderArea.extent = swapChain->getSwapChainExtent();
+
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = { 0.1f,0.1f,0.1f,1.0f };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(swapChain->getSwapChainExtent().width);
+	viewport.height = static_cast<float>(swapChain->getSwapChainExtent().height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor{ {0,0}, swapChain->getSwapChainExtent() };
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+}
+
+void Renderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
+{
+	assert(isFrameStarted && "Can't call beginSwapChain if frame is not in progress");
+	assert(commandBuffer == getCurrentCommandBuffer() && "Can't begin render pass on command buffer from a different frame");
+
+	vkCmdEndRenderPass(commandBuffer);
+}
+

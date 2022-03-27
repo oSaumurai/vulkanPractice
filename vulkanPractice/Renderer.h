@@ -1,38 +1,49 @@
 #pragma once
-#include "Pipeline/Pipeline.h"
 #include "SwapChain/SwapChain.h"
+#include <glm/glm.hpp>
 //std
 #include <memory>
 #include <vector>
+#include <cassert>
+
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(Window& window,EngineDevice& m_device);
 	~Renderer();
-	Renderer(const Renderer &) = delete;
-	Renderer& operator&=(const Renderer &) = delete;
+	Renderer(const Renderer&) = delete;
+	Renderer& operator&=(const Renderer&) = delete;
 
-	void run();
-	//void update();
-	//void draw();
+	VkRenderPass getSwapChainRenderPass() const { return swapChain->getRenderPass(); }
+	bool isFrameInProgress() const { return isFrameStarted; }
+	
+	VkCommandBuffer getCurrentCommandBuffer() const {
+		assert(isFrameStarted && "Cannot get command buffer when frame not in progress");
+		return commandBuffers[currentFrameIndex];
+	}
+
+	int getFrameIndex() const {
+		assert(isFrameStarted && "Cannot get frame index when frame not in progress");
+		return currentFrameIndex;
+	}
+
+	VkCommandBuffer beginFrame();
+	void endFrame();
+	void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+	void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
+
 private:
-	void loadModel();
-	void createPipelineLayout();
-	void createPipeline();
 	void createCommandBuffer();
-	void drawFrame();
+	void freeCommandBuffer();
 	void recreateSwapChain();
 
-	void recordCommandBuffer(uint32_t);
-	void freeCommandBuffer();
-
-	Window window{1280, 720, "Kirara"};
-	EngineDevice m_device{ window };
+	Window& window;
+	EngineDevice& m_device;
 	std::unique_ptr<SwapChain> swapChain;
-	VkPipelineLayout pipelineLayout;
-
-	std::unique_ptr<Pipeline> m_pipeLine;
 	std::vector<VkCommandBuffer> commandBuffers;
-	std::unique_ptr<Model> m_model; 
+
+	uint32_t currentImageIndex;
+	int currentFrameIndex{ 0 };
+	bool isFrameStarted{false};
 };
 

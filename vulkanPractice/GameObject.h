@@ -6,7 +6,7 @@
 struct Transform2DComponent {
 	glm::vec2 translation{};
 	glm::vec2 scale{ 1.0f, 1.0f };
-	float rotation;
+	float rotation = 1.f;
 
 	glm::mat2 mat2() 
 	{	
