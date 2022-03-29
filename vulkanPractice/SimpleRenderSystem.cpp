@@ -4,8 +4,7 @@
 #include <iostream>
 #include <array>
 struct SimplePushConstantData {
-	glm::mat2 tranform{ 1.0f };
-	glm::vec2 offset;
+	glm::mat4 tranform{ 1.0f };
 	alignas(16) glm::vec3 color;
 };
 
@@ -52,15 +51,14 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass)
 	m_pipeLine = std::make_unique<Pipeline>(m_device, "src/shader/test.vert.spv", "src/shader/test.frag.spv", pipeConfigInfo);
 }
 
-void SimpleRenderSystem::renderGameObject(VkCommandBuffer commandBuffer, std::vector<GameObject>& m_gameObjects)
+void SimpleRenderSystem::renderGameObject(VkCommandBuffer commandBuffer, std::vector<GameObject>& m_gameObjects, const Camera& camera)
 {
 	m_pipeLine->bind(commandBuffer);
 	for (auto& obj : m_gameObjects) {
-		obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
+		obj.transform.rotation = glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
 		SimplePushConstantData push{};
-		push.offset = obj.transform2d.translation;
+		push.tranform = obj.transform.mat4();
 		push.color = obj.color;
-		push.tranform = obj.transform2d.mat2();
 
 		vkCmdPushConstants(
 			commandBuffer,
