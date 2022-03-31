@@ -16,7 +16,7 @@ public:
 private:
 	void loadGameObjects();
 	std::unique_ptr<Model> createCubeModel(EngineDevice& device);
-
+	std::unique_ptr<Model>createCubeModelWIndex(EngineDevice& device);
 	Window window{1280, 720, "Kirara"};
 	EngineDevice m_device{ window };
 	Renderer renderer{ window, m_device };

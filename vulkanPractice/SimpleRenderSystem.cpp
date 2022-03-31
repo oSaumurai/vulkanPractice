@@ -58,7 +58,6 @@ void SimpleRenderSystem::renderGameObject(VkCommandBuffer commandBuffer, std::ve
 	auto projectionView = camera.getProjection() * camera.getViewMatrix();
 
 	for (auto& obj : m_gameObjects) {
-		obj.transform.rotation = glm::mod(obj.transform.rotation + 0.01f, glm::two_pi<float>());
 		SimplePushConstantData push{};
 		push.tranform = projectionView * obj.transform.mat4();
 		push.color = obj.color;
