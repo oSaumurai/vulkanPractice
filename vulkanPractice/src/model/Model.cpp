@@ -75,6 +75,14 @@ void Model::createIndexBuffers(const std::vector<uint32_t>& indices)
     vkFreeMemory(m_device.device(), stagingBufferMemory, nullptr);
 }
 
+std::unique_ptr<Model> Model::createModelFromFile(EngineDevice&, const std::string& filepath)
+{
+    Builder builder{};
+    builder.loadModel(filepath);
+    std::cout << "Vertex Count: " << builder.vertices.size() << std::endl;
+    return std::make_unique<Model>(m_device, builder);
+}
+
 void Model::draw(VkCommandBuffer commandbuffer)
 {
     if (hasIndexBuffer) 
@@ -114,13 +122,16 @@ std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescri
     attributeDescription[0].binding = 0;
     attributeDescription[0].location = 0;
     attributeDescription[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescription[0].offset = offsetof(Vertex, position);
+    attributeDescription[0].offset = offsetof(Vertex, Position);
     
     attributeDescription[1].binding = 0;
     attributeDescription[1].location = 1;
     attributeDescription[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescription[1].offset = offsetof(Vertex,color);
+    attributeDescription[1].offset = offsetof(Vertex, Color);
     return attributeDescription;
 }
 
+void Model::Builder::loadModel(const std::string& filename)
+{
 
+}

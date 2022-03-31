@@ -5,6 +5,7 @@
 #include <iostream>
 #include <array>
 #include <chrono>
+
 Kirara_App::Kirara_App()
 {
 	loadGameObjects();
