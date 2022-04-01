@@ -338,6 +338,4 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
-/Dependencies/vulkan
-/vendor/glm/out/build/x64-Debug
-/vendor
+/Dependencies
