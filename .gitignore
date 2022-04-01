@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 /Dependencies/vulkan
 /vendor/glm/out/build/x64-Debug
+/vendor
