@@ -169,13 +169,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\model\Scene.cpp" />
     <ClCompile Include="src\model\AssimpLoader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EngineDevice.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Kirara_App.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="src\model\Mesh.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SimpleRenderSystem.cpp" />
     <ClCompile Include="src\model\Model.cpp" />
@@ -184,12 +184,12 @@
     <ClCompile Include="src\SwapChain\SwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\model\Scene.h" />
     <ClInclude Include="src\model\AssimpLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EngineDevice.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Kirara_App.h" />
-    <ClInclude Include="src\model\Mesh.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SimpleRenderSystem.h" />
     <ClInclude Include="src\model\Model.h" />
