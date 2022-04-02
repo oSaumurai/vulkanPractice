@@ -143,7 +143,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>assimp-vc143-mtd.lib;vulkan-1.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)Dependencies\assimp\lib\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)Dependencies\ASSIMP\lib\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -163,17 +163,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>assimp-vc143-mtd.lib;vulkan-1.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)Dependencies\assimp\lib\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)Dependencies\ASSIMP\lib\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\model\Scene.cpp" />
     <ClCompile Include="src\model\AssimpLoader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EngineDevice.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Kirara_App.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="src\model\Mesh.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SimpleRenderSystem.cpp" />
     <ClCompile Include="src\model\Model.cpp" />
@@ -182,12 +182,12 @@
     <ClCompile Include="src\SwapChain\SwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\model\Scene.h" />
     <ClInclude Include="src\model\AssimpLoader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EngineDevice.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Kirara_App.h" />
-    <ClInclude Include="src\model\Mesh.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SimpleRenderSystem.h" />
     <ClInclude Include="src\model\Model.h" />

@@ -1,6 +1,9 @@
 #pragma once
 #include "../EngineDevice.h"
-
+//#include "AssimpLoader.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 // libs
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -11,7 +14,8 @@
 class Model
 {
 public:
-	struct Vertex {
+	struct Vertex 
+	{
 		glm::vec3 Position;
 		glm::vec3 Color;
 		glm::vec3 Normal;
@@ -24,13 +28,33 @@ public:
 		static std::vector<VkVertexInputAttributeDescription> getAttributeDescription();
 	};
 
-	struct Builder {
-		std::vector<Vertex> vertices{};
-		std::vector<uint32_t> indices{};
-		void loadModel(const std::string& filename);
+	struct Mesh 
+	{
+		Mesh(std::vector<Vertex>& vertices,
+			std::vector<uint32_t>& indices) : vertices(vertices), indices(indices) {};
+		~Mesh() {};
+
+	public:
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+		//std::vector<TextureInfo> textures;
+	public:
+		void Draw(VkCommandBuffer&);
 	};
 
-	Model(EngineDevice &device, const Model::Builder& builder);
+	struct Builder 
+	{
+		//std::vector<Vertex> vertices{};
+		std::vector<uint32_t> indices{};
+		std::vector<Mesh> meshes{};
+
+		void loadModel(const std::string& filename);
+		void ProcessNode(aiNode* node, const aiScene* scene);
+		Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
+	};
+
+	Model(EngineDevice& device, const Model::Builder& builder);
+	Model(EngineDevice& device, const Model::Mesh& mesh);
 	~Model();
 
 	Model(const Model&) = delete;
@@ -39,10 +63,12 @@ public:
 	void bind(VkCommandBuffer commandbuffer);
 	void draw(VkCommandBuffer commandbuffer);
 
+	static std::vector<std::shared_ptr<Model>> createModelFromFile(EngineDevice&, const std::string& filepath);
+
 private:
+	void createMesh(const std::vector<Mesh>& meshes);
 	void createVertexBuffers(const std::vector<Vertex>& vertices);
 	void createIndexBuffers(const std::vector<uint32_t>& indices);
-	std::unique_ptr<Model> createModelFromFile(EngineDevice&, const std::string& filepath);
 
 private:
 	EngineDevice& m_device;
